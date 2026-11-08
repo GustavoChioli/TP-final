@@ -1,37 +1,35 @@
+from funciones import *
 import pandas as pd
 
-valor_por_defecto ={
-    "sensor_id": "desconocido",
-    "temperatura": 0.0,
-    "ubicacion": "Sin ubicacion"
-}
+lista_registros = []
 
-def limpiar_registro_sensor(registro_raw:dict)->dict:
-    registro_clean = pd.DataFrame([registro_raw])
+agregar = "si"
+while agregar == "si":
+    sensor_id = input("Ingrese un sensor_id: ")
+    temperatura = input("Ingrese la temperatura del sensor: ")
+    ubicacion = input("Ingrese en que planta esta el sensor: ")
+
+    registros_raw = {
+        "sensor_id": sensor_id,
+        "temperatura": temperatura,
+        "ubicacion":ubicacion
+        }
+
+    registros_clean = limpiar_registro_sensor(registros_raw)
+    lista_registros.append(registros_clean)
+    print (registros_clean)
     
-    registro_clean = registro_clean.reindex(columns=valor_por_defecto.keys())
-    registro_clean = registro_clean.replace(r"^\s*$", pd.NA, regex=True)
+    agregar = input("Desea agregar mas registros? indique 'si'").strip().lower()
 
-    registro_clean["sensor_id"] = registro_clean["sensor_id"].str.strip()    
-    try:
-        registro_clean["temperatura"] = pd.to_numeric(registro_clean["temperatura"])
-    except ValueError:
-        registro_clean["temperatura"] = pd.to_numeric(
-            registro_clean["temperatura"].str.replace(r"[^0-9.\-]", "", regex=True),
-            errors="coerce"
-            )
-    registro_clean = registro_clean.fillna(valor_por_defecto)
-    
-    print (registro_clean)
+df_sensores = pd.concat(lista_registros, ignore_index=True)
 
-sensor_id = input("Ingrese un sensor_id: ")
-temperatura = input("Ingrese al temperatura del sensor: ")
-ubicacion = input("Ingrese en que planta esta el sensor: ")
+umbral_temperatura = pedir_float("Indique un umbral aceptable de temperatura: ")
+sensores_alerta, promedio = generar_resumen_sensores(df_sensores, umbral_temperatura)
 
-registros_raw = {
-    "sensor_id": sensor_id,
-    "temperatura": temperatura,
-    "ubicacion":ubicacion
-    }
-
-limpiar_registro_sensor(registros_raw)
+print("\n===== REPORTE FINAL =====")
+print(f"Umbral de temperatura: {umbral_temperatura:.1f} °C")
+print(f"Promedio global de la planta: {promedio:.2f} °C")
+if sensores_alerta:
+    print(f"Sensores en alerta ({len(sensores_alerta)}): {', '.join(sensores_alerta)}")
+else:
+    print("Ningún sensor superó el umbral.")
