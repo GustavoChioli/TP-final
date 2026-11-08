@@ -1,0 +1,8 @@
+<h1>Panel de Sustentabilidad</h1>
+<p>Total global de emisiones: {{ total_emisiones }} kg CO₂</p>
+<p>Planta de mayor consumo: {{ planta_mayor_consumo }}</p>
+<ul>
+  {% for planta, emision in emisiones_por_planta.items %}
+    <li>{{ planta }}: {{ emision|floatformat:2 }} kg CO₂</li>
+  {% endfor %}
+</ul>
